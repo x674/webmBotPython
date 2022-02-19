@@ -20,26 +20,30 @@ def start_bot():
     telegram_client.start()
     # Temporary files
     listMedia = []
+    message = None
     while True:
-        message = None
         if message_queue.qsize() > 0 and message == None:
             message = message_queue.get()
             for media in message.url_medias:
                 if "webm" in media:
-                    listMedia.append(convert_webm_to_mp4(media))
+                    file = convert_webm_to_mp4(media)
+                    listMedia.append(file)
                 else:
-                    listMedia.append(download_file(media))
+                    #listMedia.append(download_file(media))
+                    listMedia.append(media)
 
         if len(listMedia) == 1:
             #TODO Exception handling
             try:
-                telegram_client.send_video(chatid, video=listMedia[0], supports_streaming=True,
+                sended_messages = telegram_client.send_video(chatid, video=listMedia[0], supports_streaming=True,
                                     caption="<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>",
                                     parse_mode="html")
-                message = None
-                # After sending, remove files
-                clean(listMedia)
-                listMedia.clear()
+                if sended_messages:
+                    # After sending, remove files
+                    clean(listMedia)
+                    listMedia.clear()
+                    message = None
+                    
             except FloodWait as e:
                 asyncio.sleep(e.x)
             except MediaEmpty as e:
@@ -53,11 +57,12 @@ def start_bot():
             media_list[0].parse_mode = "html"
 
             try:
-                telegram_client.send_media_group(chatid, media=media_list)
-                message = None
-                # After sending, remove files
-                clean(listMedia)
-                listMedia.clear()
+                sended_messages = telegram_client.send_media_group(chatid, media=media_list)
+                if sended_messages:
+                    message = None
+                    # After sending, remove files
+                    clean(listMedia)
+                    listMedia.clear()
             except FloodWait as e:
                 asyncio.sleep(e.x)
             except MediaEmpty as e:
@@ -65,9 +70,10 @@ def start_bot():
         time.sleep(2)
 
 
-def clean(listMedia):
-    for media in listMedia:
-        os.remove(media)
+def clean(listMedias):
+    for media in listMedias:
+        if not ('http' in media):
+            os.remove(media)
 
 
 if __name__ == '__main__':
