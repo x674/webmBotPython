@@ -1,33 +1,68 @@
 import asyncio
+import os
 import time
+
+import pyrogram
+from VideoUtils.webmConverter import convert_webm_to_mp4
 
 from pyrogram.types import InputMediaVideo
 from pyrogram import Client
+from pyrogram.errors import FloodWait
 from ImageBoard.dvach import message_queue, Message
 
 chatid = int(-1001645629132)
 # chatid = "568343456"
 telegram_client = Client("my_account")
-InputMediaVideo("video.mp4", caption="video caption")
 
 
 def start_bot():
     telegram_client.start()
+    # Temporary files
+    listMedia = []
     while True:
-        if message_queue.qsize() > 0:
+        message = None
+        if message_queue.qsize() > 0 & message == None:
             message = message_queue.get()
-            if len(message.url_medias) == 1:
-                telegram_client.send_video(chatid, video=message.url_medias[0], supports_streaming=True,
-                                           caption="<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>",
-                                           parse_mode="html")
-            elif len(message.url_medias) > 1:
-                media_list = list(
-                    map(lambda input_media: InputMediaVideo(media=input_media, supports_streaming=True),
-                        message.url_medias))
-                media_list[0].caption = "<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>"
-                media_list[0].parse_mode = "html"
+            for media in message.url_medias:
+                if "webm" in media:
+                    listMedia.append(convert_webm_to_mp4(media))
+                else:
+                    listMedia.append(media)
+
+        if len(listMedia) == 1:
+            #TODO Exception handling
+            try:
+                telegram_client.send_video(chatid, video=listMedia[0], supports_streaming=True,
+                                    caption="<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>",
+                                    parse_mode="html")
+                message = None
+                # After sending, remove files
+                clean(listMedia)
+                listMedia.clear()
+            except FloodWait as e:
+                asyncio.sleep(e.x)
+
+        elif len(listMedia) > 1:
+            media_list = list(
+                map(lambda input_media: InputMediaVideo(media=input_media, supports_streaming=True),
+                    listMedia))
+            media_list[0].caption = "<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>"
+            media_list[0].parse_mode = "html"
+
+            try:
                 telegram_client.send_media_group(chatid, media=media_list)
+                message = None
+                # After sending, remove files
+                clean(listMedia)
+                listMedia.clear()
+            except FloodWait as e:
+                asyncio.sleep(e.x)
         time.sleep(2)
+
+
+def clean(listMedia):
+    for media in listMedia:
+        os.remove(media)
 
 
 if __name__ == '__main__':
