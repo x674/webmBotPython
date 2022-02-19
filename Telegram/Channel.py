@@ -2,14 +2,15 @@ import asyncio
 import os
 import time
 
-import pyrogram
-from VideoUtils.webmConverter import convert_webm_to_mp4
+from VideoUtils.webmConverter  import convert_webm_to_mp4,download_file
 
 from pyrogram.types import InputMediaVideo
 from pyrogram import Client
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait,MediaEmpty
 from ImageBoard.dvach import message_queue, Message
 
+MEDIA_GROUP_MAX_SIZE: int = 10
+#mediagroup maximum 10
 chatid = int(-1001645629132)
 # chatid = "568343456"
 telegram_client = Client("my_account")
@@ -21,13 +22,13 @@ def start_bot():
     listMedia = []
     while True:
         message = None
-        if message_queue.qsize() > 0 & message == None:
+        if message_queue.qsize() > 0 and message == None:
             message = message_queue.get()
             for media in message.url_medias:
                 if "webm" in media:
                     listMedia.append(convert_webm_to_mp4(media))
                 else:
-                    listMedia.append(media)
+                    listMedia.append(download_file(media))
 
         if len(listMedia) == 1:
             #TODO Exception handling
@@ -41,6 +42,8 @@ def start_bot():
                 listMedia.clear()
             except FloodWait as e:
                 asyncio.sleep(e.x)
+            except MediaEmpty as e:
+                print(e.x)
 
         elif len(listMedia) > 1:
             media_list = list(
@@ -57,6 +60,8 @@ def start_bot():
                 listMedia.clear()
             except FloodWait as e:
                 asyncio.sleep(e.x)
+            except MediaEmpty as e:
+                print(e.x)
         time.sleep(2)
 
 

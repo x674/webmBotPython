@@ -20,7 +20,7 @@ class Message:
 
 
 def update_threads():
-    threads = list(filter(lambda thread:any(type in thread['subject'].lower() for type in ["fap","фап","webm"]),get_2ch_threads()))
+    threads = list(filter(lambda thread:any(type in thread['subject'].lower() for type in ["fap","фап"]),get_2ch_threads()))
     for thread in threads:
         get_media_from_thread(thread["num"])
         print("total message: " + str(message_queue.qsize()))
@@ -42,7 +42,7 @@ def get_media_from_thread(idThread):
         url_list = []
         for media in post["files"]:
             #            if any(type in media["name"] for type in ["mp4", "webm"]):
-            if any(type in media["name"] for type in ["mp4"]):
+            if any(type in media["name"] for type in ["mp4", "webm"]):
                 url_list.append(host2ch + media["path"])
         url_thread_message = ""
         if len(url_list) > 0:
