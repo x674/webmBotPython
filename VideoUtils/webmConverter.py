@@ -9,16 +9,21 @@ import requests
 def convert_webm_to_mp4(input_path : str):
     if "http" in input_path:
         #if url then download file
-        r = requests.get(input_path)
-        filename = os.path.basename(input_path)
-        file = open(filename,"wb")
-        file.write(r.content)
-        input_path = os.path.realpath(file.name)
+        input_path = download_file(input_path)
     outname = os.path.basename(input_path)
     outname = outname.replace("webm","mp4")
     stream = ffmpeg.input(input_path)
     stream = ffmpeg.output(stream, outname)
     ffmpeg.run(stream)
+
+
+def download_file(url : str):
+    r = requests.get(url)
+    filename = os.path.basename(url)
+    file = open(filename, "wb")
+    file.write(r.content)
+    path_to_file = os.path.realpath(file.name)
+    return path_to_file
 
 
 """Test"""
