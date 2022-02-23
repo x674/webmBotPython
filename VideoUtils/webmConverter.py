@@ -15,6 +15,8 @@ def convert_webm_to_mp4(input_path : str):
     stream = ffmpeg.input(input_path)
     stream = ffmpeg.output(stream, outname)
     ffmpeg.run(stream)
+    path_to_file = os.path.realpath(outnayme)
+    return path_to_file
 
 
 def download_file(url : str):
