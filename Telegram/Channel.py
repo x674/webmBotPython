@@ -3,16 +3,16 @@ import os
 import time
 from typing import List
 
-from VideoUtils.webmConverter  import convert_webm_to_mp4,download_file
-from VideoUtils.Utils  import has_audio_streams,generate_thumbnail
+from VideoUtils.webmConverter import convert_webm_to_mp4, download_file
+from VideoUtils.Utils import has_audio_streams, generate_thumbnail
 
 from pyrogram.types import InputMediaVideo, InputMediaAnimation
 from pyrogram import Client
-from pyrogram.errors import FloodWait,MediaEmpty
+from pyrogram.errors import FloodWait, MediaEmpty
 from ImageBoard.dvach import message_queue, Message
 
 MEDIA_GROUP_MAX_SIZE: int = 10
-#mediagroup maximum 10
+# mediagroup maximum 10
 chatid = int(-1001645629132)
 # chatid = "568343456"
 telegram_client = Client("my_account")
@@ -24,7 +24,8 @@ class MediaFile:
         self.pathThumbnail = pathThumbnail
 
 
-listMedia : List[MediaFile] = []
+listMedia: List[MediaFile] = []
+
 
 def start_bot():
     telegram_client.start()
@@ -34,64 +35,63 @@ def start_bot():
         if message_queue.qsize() > 0 and message == None:
             message = message_queue.get()
             for url_media in message.url_medias:
-                # if "webm" in media:
-                #     file = convert_webm_to_mp4(media)
-                #     listMedia.append(file)
-                # else:
-                #     #listMedia.append(download_file(media))
-                #     listMedia.append(media)
                 if "mp4" in url_media:
                     mediafile = download_file(url_media)
                     thumbnail = generate_thumbnail(mediafile)
-                    listMedia.append(MediaFile(mediafile,thumbnail))
-                    #listMedia.append(media)
+                    listMedia.append(MediaFile(mediafile, thumbnail))
+                    # listMedia.append(media)
                 elif "webm" in url_media:
                     mediafile = convert_webm_to_mp4(url_media)
                     thumbnail = generate_thumbnail(mediafile)
-                    listMedia.append(MediaFile(mediafile,thumbnail))
-                #anti dos
+                    listMedia.append(MediaFile(mediafile, thumbnail))
+                # anti dos
                 time.sleep(4)
         elif message:
-            caption="<a href=\"" + message.url_message + "\">" + message.name_thread
+            caption = "<a href=\"" + message.url_message + "\">" + message.name_thread
             if len(listMedia) == 1:
-                #TODO Exception handling
+                # TODO Exception handling
                 try:
-                    sended_messages = telegram_client.send_video(chatid, video=listMedia[0].pathMedia, thumb=listMedia[0].pathThumbnail, supports_streaming=True,
-                                        caption="<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>",
-                                        parse_mode="html")
-                    if sended_messages:
+                    sent_messages = telegram_client.send_video(
+                        chatid, video=listMedia[0].pathMedia,
+                        thumb=listMedia[0].pathThumbnail,
+                        supports_streaming=True,
+                        caption="<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>",
+                        parse_mode="html"
+                    )
+                    if sent_messages:
                         # After sending, remove files
                         clean(listMedia)
                         listMedia.clear()
                         message = None
-                        
+
                 except FloodWait as e:
                     asyncio.sleep(e.x)
 
             elif len(listMedia) > 1:
 
-                #create list media to sent in group
+                # create list media to sent in group
                 media_list = []
                 for media in listMedia:
-                    #if media file contains audio then it can be sent in a group
+                    # if media file contains audio then it can be sent in a group
                     if has_audio_streams(media.pathMedia):
-                        media_list.append(InputMediaVideo(media=media.pathMedia, thumb=media.pathThumbnail, supports_streaming=True) )
-                    #else, we send it immediately as an animation
+                        media_list.append(
+                            InputMediaVideo(media=media.pathMedia, thumb=media.pathThumbnail, supports_streaming=True))
+                    # else, we send it immediately as an animation
                     else:
                         try:
-                            telegram_client.send_animation(chatid, video=media.pathMedia, thumb=media.pathThumbnail, supports_streaming=True, caption=caption, parse_mode="html")
+                            telegram_client.send_animation(chatid,
+                                                           animation=media.pathMedia,
+                                                           thumb=media.pathThumbnail,
+                                                           caption=caption,
+                                                           parse_mode="html")
                             time.sleep(4)
                         except FloodWait as e:
                             asyncio.sleep(e.x)
-                # media_list = list(map(lambda input_media: 
-                #     InputMediaVideo(media=input_media, supports_streaming=True) 
-                #     if has_audio_streams(input_media) 
-                #     else InputMediaAnimation(media=input_media),listMedia))
                 media_list[0].caption = "<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>"
                 media_list[0].parse_mode = "html"
                 try:
-                    sended_messages = telegram_client.send_media_group(chatid, media=media_list)
-                    if sended_messages:
+                    sent_messages = telegram_client.send_media_group(chatid, media=media_list)
+                    if sent_messages:
                         message = None
                         # After sending, remove files
                         clean(listMedia)
