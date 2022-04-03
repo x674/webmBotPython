@@ -87,7 +87,7 @@ def start_bot():
                             time.sleep(4)
                         except FloodWait as e:
                             asyncio.sleep(e.x)
-                media_list[0].caption = "<a href=\"" + message.url_message + "\">" + message.name_thread + "</a>"
+                media_list[0].caption = caption
                 media_list[0].parse_mode = "html"
                 try:
                     sent_messages = telegram_client.send_media_group(chatid, media=media_list)

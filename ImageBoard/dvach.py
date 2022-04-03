@@ -20,7 +20,8 @@ class Message:
 
 
 def update_threads():
-    threads = list(filter(lambda thread:any(type in thread['subject'].lower() for type in ["fap","фап"]),get_2ch_threads()))
+    threads = list(filter(lambda thread: any(type in thread['subject'].lower() for type in ["фап"]),
+                          get_2ch_threads()))
     for thread in threads:
         get_media_from_thread(thread["num"])
         print("total message: " + str(message_queue.qsize()))
