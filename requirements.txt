@@ -21,6 +21,6 @@ snooty-lextudio==1.11.6
 TgCrypto==1.2.3
 toml==0.10.2
 typing_extensions==4.1.1
-ujson==5.1.0
+ujson==5.4.0
 urllib3==1.26.8
 watchdog==2.1.6
