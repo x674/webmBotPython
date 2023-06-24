@@ -15,7 +15,7 @@ Pyrogram==1.4.7
 PySocks==1.7.1
 python-jsonrpc-server==0.4.0
 PyYAML==6.0
-requests==2.27.1
+requests==2.31.0
 rstcheck==3.3.1
 snooty-lextudio==1.11.6
 TgCrypto==1.2.3
