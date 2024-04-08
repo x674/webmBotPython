@@ -10,7 +10,7 @@ idna==3.3
 imageio-ffmpeg==0.4.5
 networkx==2.6.3
 pyaes==1.6.1
-pymongo==4.0.1
+pymongo==4.6.3
 Pyrogram==1.4.7
 PySocks==1.7.1
 python-jsonrpc-server==0.4.0
